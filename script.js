@@ -3,15 +3,24 @@ var map = L.map('map', {
     center: [20, 0],
     zoom: 2,
     minZoom: 2,
-    maxZoom: 18
+    maxZoom: 18,
+    worldCopyJump: true
 });
 
-// Add a custom-styled base map layer
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+// Define base map layers
+var grayscaleMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
     maxZoom: 20
-}).addTo(map);
+});
+
+var satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+    maxZoom: 20
+});
+
+// Add grayscale map as default
+grayscaleMap.addTo(map);
 
 // Define mosasaur fossil locations with additional information
 var mosasaurLocations = [
@@ -122,15 +131,19 @@ var markersLayer = L.layerGroup().addTo(map);
 function addMarkers(locations) {
     markersLayer.clearLayers();
     locations.forEach(function(location) {
-        var marker = L.marker([location.lat, location.lon], {icon: mosasaurIcon})
-            .bindPopup(
-                "<b>" + location.name + "</b><br>" +
-                "Species: " + (location.species || "Unknown") + "<br>" +
-                "Year: " + (location.year || "Unknown") + "<br>" +
-                location.info + "<br>" +
-                "<a href='" + location.link + "' target='_blank'>Learn more</a>"
-            );
-        markersLayer.addLayer(marker);
+        // Create markers for three copies of the world
+        for (var i = -1; i <= 1; i++) {
+            var lng = location.lon + i * 360;
+            var marker = L.marker([location.lat, lng], {icon: mosasaurIcon})
+                .bindPopup(
+                    "<b>" + location.name + "</b><br>" +
+                    "Species: " + (location.species || "Unknown") + "<br>" +
+                    "Year: " + (location.year || "Unknown") + "<br>" +
+                    location.info + "<br>" +
+                    "<a href='" + location.link + "' target='_blank'>Learn more</a>"
+                );
+            markersLayer.addLayer(marker);
+        }
     });
 }
 
@@ -196,3 +209,11 @@ legend.onAdd = function (map) {
     return div;
 };
 legend.addTo(map);
+
+// Add layer control
+var baseMaps = {
+    "Grayscale": grayscaleMap,
+    "Satellite": satelliteMap
+};
+
+L.control.layers(baseMaps).addTo(map);
