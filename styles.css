@@ -7,3 +7,20 @@ body {
     width: 100%;
     height: 100vh;
 }
+
+.search-control, .filter-control {
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.search-input, .filter-select {
+    width: 200px;
+    padding: 5px;
+}
+
+.legend {
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+}
